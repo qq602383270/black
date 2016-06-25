@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog/1.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog/1.9     
+            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-1.9.xsd">
+	<changeSet author="wangyonghe" id="wangyonghe-2016-01-13">
+		<sql>
+			CREATE TABLE `user_info` (
+			`id` varchar(10) NOT NULL ,
+			`username` varchar(100) NULL ,
+			`password` varchar(100) NULL ,
+			`realname` varchar(100) NULL ,
+			PRIMARY KEY (`id`)
+			);
+		</sql>
+	</changeSet>
+	<changeSet author="wangyonghe" id="wangyonghe-2016-01-13-02">
+		<sql>
+			CREATE TABLE `user_info_log` (
+			`id` varchar(10) NOT NULL ,
+			`username` varchar(100) NULL ,
+			`password` varchar(100) NULL ,
+			`realname` varchar(100) NULL ,
+			PRIMARY KEY (`id`)
+			);
+		</sql>
+	</changeSet>
+	<changeSet author="wangyonghe" id="wangyonghe-2016-01-13-03">
+		<sql>
+			INSERT INTO `test`.`user_info_log` (`id`, `username`, `password`, `realname`) VALUES ('1', '1', '1', '1');
+		</sql>
+	</changeSet>
+</databaseChangeLog>

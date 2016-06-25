@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE dwr PUBLIC "-//GetAhead Limited//DTD Direct Web Remoting 3.0//EN" 
+  "http://getahead.org/dwr/dwr30.dtd">
+<dwr>  
+  <allow>  
+  <!--配置的一个演示类，javascript="service" 表示可以在页面中用service这个名称指向Service这个java类，类中的方法可以在前台调用 -->
+        <!-- creater="new"表示每调用一次时,都需要new一个 -->
+    <create creator="new" javascript="service">  
+      <param name="class" value="com.commons.dwr.myway.dwr.Service"/>  
+    </create> 
+     
+    <convert match="com.commons.dwr.entity.Message" converter="bean">
+         <param name="include" value="msg,time" />
+    </convert>
+    <create creator="spring" javascript="ChatService">
+         <param name="beanName" value="chatService" />
+    </create>
+  </allow>  
+</dwr>  

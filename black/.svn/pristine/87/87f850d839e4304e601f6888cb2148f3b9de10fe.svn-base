@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="utf-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://java.sun.com/xml/ns/javaee"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd" id="WebApp_ID" version="3.0">
+	<!-- 定义项目的名称 -->
+	<display-name>black</display-name>
+	<!-- 对项目做出描述 -->
+	<description>this is jms project of practice</description>
+	<!-- icon元素包含small-icon和large-icon两个子元素.用来指定web站台中小图标和大图标的路径 -->
+	<icon>
+		<large-icon>resource/images/w1.ico</large-icon>
+		<small-icon>resource/images/w1.ico</small-icon>
+	</icon>
+
+	<!-- 元素含有一对参数名和参数值，用作应用的servlet上下文初始化参数。参数名在整个Web应用中必须是惟一的。 -->
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:spring/applicationContext*.xml</param-value>
+	</context-param>
+
+	<!-- DelegatingFilterProxy就是一个对于servlet filter的代理，用这个类的好处主要是通过Spring容器来管理servlet filter的生命周期， 还有就是如果filter中需要一些Spring容器的实例，可以通过spring直接注入，另外读取一些配置文件这些便利的操作都可以通过Spring来配置实现。 
+		DelegatingFilterProxy类的一些内部运行机制，其实主要作用就是一个代理模式的应用,可以把servlet 容器中的filter同spring容器中的bean关联起来。 -->
+	<filter>
+		<filter-name>springSecurityFilterChain</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+		<init-param>
+			<param-name>targetFilterLifecycle</param-name>
+			<param-value>true</param-value>
+			<!-- 默认是false -->
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>springSecurityFilterChain</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+
+	<!-- DispatcherServlet是前端控制器设计模式的实现，提供Spring Web MVC的集中访问点，而且负责职责的分派，而且与Spring IoC容器无缝集成，从而可以获得Spring的所有好处 -->
+	<servlet>
+		<servlet-name>springMvc</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:spring/springMVC.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>springMvc</servlet-name>
+		<url-pattern>/</url-pattern>
+	</servlet-mapping>
+
+	<!-- 启动Web容器时，自动装配ApplicationContext的配置信息 -->
+	<listener>
+		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+	</listener>
+	<!-- 初始化一些系统的参数 -->
+	<listener>
+		<listener-class>com.commons.listener.StartupListener</listener-class>
+	</listener>
+	<listener>
+		<listener-class>org.directwebremoting.servlet.DwrListener</listener-class>
+	</listener>
+	<servlet-mapping>
+		<servlet-name>springMvc</servlet-name>
+		<url-pattern>/dwr/*</url-pattern>
+	</servlet-mapping>
+
+	<!-- 设置项目中的字符编码 -->
+	<filter>
+		<filter-name>characterEncodingFilter</filter-name>
+		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
+		<init-param>
+			<param-name>encoding</param-name>
+			<param-value>utf8</param-value>
+		</init-param>
+		<init-param>
+			<param-name>forceEncoding</param-name>
+			<!-- 是否允许设置的encoding 覆盖request和response中已经存在的encodings。 -->
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>characterEncodingFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+
+
+
+	<!-- 主要是初始化请求以及请求完毕之后的销毁操作，没有特别的特殊处理 -->
+	<listener>
+		<listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
+	</listener>
+
+	<!-- 设置session的有效时间 单位分钟 -->
+	<session-config>
+		<session-timeout>10</session-timeout>
+	</session-config>
+	<!-- 配置数据源监控 -->
+	<filter>
+		<filter-name>DruidWebStatFilter</filter-name>
+		<filter-class>com.alibaba.druid.support.http.WebStatFilter</filter-class>
+		<init-param>
+			<param-name>exclusions</param-name>
+			<param-value>weburi.json,.html,.js,.gif,.jpg,.png,.css,.ico,/druid/*</param-value>
+		</init-param>
+		<init-param>
+			<param-name>sessionStatMaxCount</param-name>
+			<param-value>1000</param-value>
+		</init-param>
+		<init-param>
+			<param-name>principalSessionName</param-name>
+			<param-value>FRONT_USER</param-value>
+		</init-param>
+	</filter>
+
+	<filter-mapping>
+		<filter-name>DruidWebStatFilter</filter-name>
+		<url-pattern>*.do</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>DruidWebStatFilter</filter-name>
+		<url-pattern>*.jsp</url-pattern>
+	</filter-mapping>
+	<servlet>
+		<servlet-name>DruidStatView</servlet-name>
+		<servlet-class>com.alibaba.druid.support.http.StatViewServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>DruidStatView</servlet-name>
+		<url-pattern>/druid/*</url-pattern>
+	</servlet-mapping>
+
+	<!-- webAppRootKey：值缺省为webapp.root，当tomcat下部署多个应用时(每个都用到了log4j)， 每个应用的web.xml中都要配置该参数，该参数与Log4j.xml文件中的${webapp.root} 否则每个应用的webAppRootKey值都相同，就会引起冲突 
+		<context-param> <param-name>webAppRootKey</param-name> <param-value>webapp.root</param-value> </context-param> log4jConfigLocation：log4j配置文件存放路径 
+		<context-param> <param-name>log4jConfigLocation</param-name> <param-value>/WEB-INF/conf/log4j.xml</param-value> </context-param> <listener> 
+		<listener-class>org.springframework.web.util.Log4jConfigListener</listener-class> </listener> -->
+	<!--配置log4j日志输出 -->
+	<context-param>
+		<param-name>log4jConfigLocation</param-name>
+		<param-value>classpath:log4j.properties</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
+	</listener>
+	<error-page>
+		<error-code>500</error-code>
+		<location>/jsp/500</location>
+	</error-page>
+	<error-page>
+		<error-code>404</error-code>
+		<location>/jsp/404.do</location>
+	</error-page>
+</web-app>

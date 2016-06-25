@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context" xmlns:aop="http://www.springframework.org/schema/aop" xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:security="http://www.springframework.org/schema/security" xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:dwr="http://www.directwebremoting.org/schema/spring-dwr" xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+   		http://www.springframework.org/schema/beans/spring-beans-3.2.xsd  
+       	http://www.springframework.org/schema/aop 
+       	http://www.springframework.org/schema/aop/spring-aop-3.2.xsd  
+       	http://www.springframework.org/schema/context 
+       	http://www.springframework.org/schema/context/spring-context-3.2.xsd
+       	http://www.springframework.org/schema/mvc  
+       	http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+       	http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.0.xsd
+       	http://www.springframework.org/schema/task  
+		http://www.springframework.org/schema/task/spring-task-3.1.xsd 
+		http://www.directwebremoting.org/schema/spring-dwr
+		http://www.directwebremoting.org/schema/spring-dwr-3.0.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-3.1.xsd"
+	default-lazy-init="true" default-autowire="byName">
+
+	<bean id="propertyConfigurer" class="org.springframework.beans.factory.config.PropertyPlaceholderConfigurer">
+		<property name="locations">
+			<list>
+				<value>classpath*:database.properties</value>
+			</list>
+		</property>
+	</bean>
+
+	<!--start 配置数据源 -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driver}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<!-- 连接池启动时创建的初始化连接数量 -->
+		<property name="initialSize" value="${jdbc.initialSize}" />
+		<!-- 连接池中可同时连接的最大的连接数 -->
+		<property name="maxActive" value="${jdbc.maxActive}" />
+		<!-- 连接池中最大的空闲的连接数，超过的空闲连接将被释放，如果设置为负数表示不限制 -->
+		<property name="maxIdle" value="${jdbc.maxIdle}" />
+		<!-- 连接池中最小的空闲的连接数，低于这个数量会被创建新的连接 -->
+		<property name="minIdle" value="${jdbc.minIdle}" />
+		<!-- dbcp validate 设置开始 -->
+		<property name="testWhileIdle" value="true" />
+		<property name="testOnBorrow" value="false" />
+		<property name="testOnReturn" value="false" />
+		<property name="validationQuery" value="select 1 from dual" />
+		<property name="validationQueryTimeout" value="1" />
+		<property name="timeBetweenEvictionRunsMillis" value="30000" />
+		<property name="numTestsPerEvictionRun" value="20" />
+		<property name="minEvictableIdleTimeMillis" value="60000" />
+		<!-- dbcp validate 设置结束 -->
+
+		<!-- <property name="poolPreparedStatements" value="true"></property> -->
+	</bean>
+	<!--end 配置数据源 -->
+
+
+	<bean id="druidDataSource" class="com.alibaba.druid.pool.DruidDataSource">
+		<property name="driverClassName" value="${jdbc.driver}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<!-- 下面druid 和 dbcp 连接池通用的 ↓↓↓↓↓↓↓↓↓↓↓↓ -->
+		<!--maxActive: 最大连接数量 -->
+		<property name="maxActive" value="${jdbc.maxActive}" />
+		<!--initialSize: 初始化连接 -->
+		<property name="initialSize" value="${jdbc.initialSize}" />
+	</bean>
+
+
+	<!--1:配置一个JdbcTemplate实例，并将这个“共享的”，“安全的”实例注入到不同的DAO类中去 -->
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="druidDataSource" />
+	</bean>
+
+
+
+	<!-- start 事物的配置 -->
+	<bean id="txManagerDB" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="druidDataSource" />
+	</bean>
+
+	<!-- 方式一 配置文件配置 -->
+	<tx:advice id="txAdviceDB" transaction-manager="txManagerDB">
+		<tx:attributes>
+			<tx:method name="get*" read-only="true" />
+			<tx:method name="find*" read-only="true" />
+			<tx:method name="select*" read-only="true" />
+			<tx:method name="*" />
+		</tx:attributes>
+	</tx:advice>
+	<aop:config proxy-target-class="true">
+		<aop:advisor pointcut="execution(* com.brd..*.services.*.*(..)) || execution(* com.brd..*.service.*.*(..))"
+			advice-ref="txAdviceDB" />
+	</aop:config>
+	
+	<!-- 方式二 注解配置 -->
+	<context:annotation-config />
+	<tx:annotation-driven transaction-manager="txManagerDB" />
+	
+	<!-- end 事物的配置 -->
+
+
+	<!-- start MyBatis 配置 -->
+	<!-- myBatis sqlSessionFactory -->
+	<bean id="sqlSessionFactoryBeanName" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="druidDataSource" />
+		<property name="configLocation" value="classpath:myBatis-config.xml"></property>
+	</bean>
+
+	<!-- scan for mappers and let them be autowired -->
+	<bean id="MapperScannerConfigurerForDB" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="com.brd" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactoryBeanName" />
+		<property name="annotationClass" value="annotation.MybatisMapper" />
+	</bean>
+	<!-- end MyBatis 配置 -->
+</beans>
