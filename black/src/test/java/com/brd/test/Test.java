@@ -5,7 +5,7 @@ import java.util.List;
 
 public class Test {
   static  int Ary=32;
-  static  List<Character> ch=new ArrayList<>();
+  static  List<Character> ch=new ArrayList<Character>();
   static{
       for (int i = 0; i < Ary; i++) {
           if(i<10){
@@ -24,10 +24,14 @@ public class Test {
      public static void main(String[] args) {
          
          System.out.println(ch);
-        System.out.println(new Test(2).getString(97).reverse());
-        System.out.println(new Test(8).getString(97).reverse());
-        System.out.println(new Test(16).getString(97).reverse());
-        System.out.println(new Test(32).getString(97).reverse());
+        new Test(2);
+        System.out.println(Test.getString(97).reverse());
+        new Test(8);
+        System.out.println(Test.getString(97).reverse());
+        new Test(16);
+        System.out.println(Test.getString(97).reverse());
+        new Test(32);
+        System.out.println(Test.getString(97).reverse());
       
     }
      public  static StringBuffer getString(int number){

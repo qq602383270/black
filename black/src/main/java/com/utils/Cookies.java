@@ -15,7 +15,7 @@ public class Cookies {
 	}
 	
 	public static Cookie getCookieByName(HttpServletRequest request,String name){
-		Map<String,Cookie> cookieMap = new HashMap<>();
+		Map<String,Cookie> cookieMap = new HashMap<String, Cookie>();
 		
 		Cookie[] cookies = request.getCookies();
 		  if(null!=cookies){
